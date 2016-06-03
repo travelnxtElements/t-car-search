@@ -1,0 +1,65 @@
+<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../t-shared-lib/t-provider-behavior.html">
+<dom-module id="t-car-search-api">
+    <template>
+        <iron-ajax id="ajaxCall" method="POST" content-type="application/json" handle-as="json" verbose>
+        </iron-ajax>
+    </template>
+</dom-module>
+<script>
+Polymer({
+    is: "t-car-search-api",
+
+    properties: {
+        request: {
+            type: Object,
+            value: null
+        }
+    },
+
+    behaviors: [TravelNxt.Behaviors.ProviderBehavior],
+
+    listeners: {
+        'ajaxCall.response': '_successCallback',
+        'ajaxCall.error': '_errorCallback'
+    },
+
+    onSearch: function(e) {
+
+        if (!e.detail.request) {
+            throw Error("search request is mandetory");
+        }
+
+        this.request = e.detail.request;
+        this.search();
+    },
+
+    search: function(data) {
+
+        if (!this.request) {
+            if (!data) {
+                throw Error("search request is mandetory");
+            } else {
+                this.request = data;
+            }
+        }
+
+        if (this._validateApiMeta()) {
+            this.$.ajaxCall.url = this._getUrl();
+            this.$.ajaxCall.body = JSON.stringify(this.request);
+            this._setLoading(true);
+            this.$.ajaxCall.generateRequest();
+        }
+    },
+
+    _successCallback: function(event) {
+        this._successHandler(event);
+    },
+
+    _errorCallback: function(event) {
+        this._errorHandler(event);
+    }
+
+});
+</script>

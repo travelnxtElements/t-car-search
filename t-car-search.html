@@ -1,0 +1,74 @@
+<link rel="import" href="../polymer/polymer.html" />
+<dom-module id="t-car-search">
+    <style>
+    :host {
+        text-align: center;
+    }
+    </style>
+    <template>
+        <input on-click="searchCars" type="button" value="Search Cars!" />
+    </template>
+</dom-module>
+<script>
+Polymer({
+    is: "t-car-search",
+
+    properties: {
+        request: {
+            type: Object,
+            value: null
+        },
+
+        response: {
+            type: Object,
+            value: null
+        }
+    },
+
+    searchCars: function() {
+
+        //sample request
+        this.request = {
+            "productType": "car",
+            "pickupLocation": {
+                "name": "Las Vegas, NV, United States - McCarran International Airport (LAS)",
+                "geoCode": "36.0854,-115.15",
+                "type": "Address",
+                "code": "LAS",
+                "formattedAddress": "Las Vegas, NV, US - Las Vegas North Air Terminal (VGT)"
+            },
+            "pickupDate": {
+                "date": "Fri, 24 June, 2016",
+                "time": "11:00 AM"
+            },
+            "dropoffDate": {
+                "date": "Tue, 28 June, 2016",
+                "time": "11:00 AM"
+            },
+            "dropoffLocation": {
+                "name": "Las Vegas, NV, United States - McCarran International Airport (LAS)",
+                "geoCode": "36.0854,-115.15",
+                "type": "Address",
+                "code": "LAS",
+                "formattedAddress": "Las Vegas, NV, US - Las Vegas North Air Terminal (VGT)"
+            }
+        };
+
+        this.fire('t-car-search', {
+            request: this.request
+        });
+    },
+
+    onSearchSuccess: function(e) {
+        console.log(e.detail);
+        this.fire('t-car-search-success', {
+            request: e.detail
+        });
+    },
+
+    onSearchError: function(e) {
+        console.log(e.detail);
+        this.fire('t-car-search-failure', e.detail);
+    }
+});
+</script>

@@ -1,0 +1,34 @@
+{
+  "name": "t-car-search",
+  "version": "0.0.0",
+  "authors": [
+    "Manoj Chalode <mchalode@tavisca.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "keywords": [
+    "Polymer",
+    "Web",
+    "Components"
+  ],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "t-mystique-auth": "travelnxtelements/t-mystique-auth#^1.0.0",
+    "t-shared-lib": "travelnxtelements/t-shared-lib#^1.0.2"
+  },
+  "devDependencies": {
+    "web-component-tester": "*",
+    "webcomponentsjs": "~0.7.14",
+    "iron-component-page": "PolymerElements/iron-component-page#~1.0.6"
+  }
+}
