@@ -6,6 +6,34 @@
 <link rel="import" href="../t-calendar/t-calendar.html" />
 <link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
+<!--
+    `t-car-search` is a car search component integrated with mystique apis
+
+    The dropoff location selection is optional. It is same as pickup location 
+    if isDropoffLocationSame flag is set to true
+
+    This component callst-car-search-api api component to generate search id. 
+
+    Generated search is then stored in searchId property.
+
+    components should be provided with autocomplete api url and token in order to integrate with t-autosuggest.
+    
+    following events are fired by this component
+        1. 't-car-search' - sends car search request object
+        2. 't-car-search-success' - car search success callback
+        3. 't-car-search-failure' - car search failure callback
+
+Example:
+
+    <t-car-search 
+        id="searchView" 
+        autosuggest-api="http://qa-mystiquecode.tavisca.com/api/content/autosuggest/" 
+        autosuggest-query-string="token={{tokenResponse.authenticationToken}}">
+    </t-car-search>
+
+@demo demo/index.html
+-->
+
 <dom-module id="t-car-search">
     <style include="iron-flex"></style>
     <style include="travel-element-styles">
@@ -28,13 +56,13 @@
     </style>
     <template>
         <div>
-            <t-autosuggest id="pick-up-location" required selected-item="{{pickupLocation}}" label="Pick-up from" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+            <t-autosuggest id="pick-up-location" required selected-item="{{_pickupLocation}}" label="Pick-up from" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
         <div class="checkbox">
             <t-checkbox id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
         </div>
         <div hidden$="{{isDropoffLocationSame}}">
-            <t-autosuggest id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+            <t-autosuggest id="drop-off-location" required selected-item="{{_dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
         <div>
             <t-calendar required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
@@ -60,65 +88,108 @@ Polymer({
     is: "t-car-search",
 
     properties: {
-
-        pickupLocation: {
-            type: String,
+        /*
+         * This stores item selected by pickup location autosuggest
+         * The item includes location information like geocode, city code, etc.
+        */
+        _pickupLocation: {
+            type: Object,
             value: ''
         },
 
-        dropoffLocation: {
-            type: String,
+        /*
+         * This stores item selected by dropoff location autosuggest
+         * The item includes location information like geocode, city code, etc.
+         * Observer function keeps a copy of dropoff location to re populate precious data if required.
+        */
+        _dropoffLocation: {
+            type: Object,
             value: '',
             observer: '_storeLocation'
         },
 
+        /*
+         * This is the copy of dropoff location proeprty
+        */
         _previousDropoffLocation: {
             type: String,
             value: ''
         },
 
+        /*
+         * This stores the pickup date
+         * Observer function resets the min max values for dropoff dates to meet validation constraints.
+        */
         pickupDate: {
             type: Date,
             value: null,
             observer: '_pickupDateChanged'
         },
 
+        /*
+         * This stores the dropoff date
+         * Observer function resets the min max values for pickup dates to meet validation constraints.
+        */
         dropoffDate: {
             type: Date,
             value: null,
             observer: '_dropoffDateChanged'
         },
 
+        /*
+         * This stores the pickup time
+        */
         pickupTime: {
-            type: Date,
+            type: String,
             value: null
         },
 
+        /*
+         * This stores the dropoff time
+        */
         dropoffTime: {
-            type: Date,
+            type: String,
             value: null
         },
 
+        /*
+         * This flag switches dropoff location view visibility
+         * Observer function updates dropoff location and uses past dropoff value if exists
+        */
         isDropoffLocationSame: {
             type: Boolean,
             value: true,
             observer: '_updateDropoffLocation'
         },
 
+        /*
+         * This url is used as base api url for t-autosuggest
+        */
         autosuggestApi: {
             type: String,
             value: ''
         },
 
+        /*
+         * This string is query string containing token value
+        */
         autosuggestQueryString: {
             type: String,
             value: ''
         },
 
+        /*
+         * This is the car search request object
+        */
         request: {
             type: Object,
             value: null
         },
+
+        /*
+         * This string is the search id generated on successful search call
+         * Result api uses this id to search results
+        */
 
         searchId: {
             type: String,
@@ -127,9 +198,12 @@ Polymer({
     },
 
     _storeLocation: function() {
-        this._previousDropoffLocation = this.dropoffLocation;
+        this._previousDropoffLocation = this._dropoffLocation;
     },
 
+    /*
+     * Returns formatted date required in the search request
+    */
     _getFormattedDate: function(date) {
         if (!date) {
             return null;
@@ -156,30 +230,36 @@ Polymer({
         return date.join(' ');
     },
 
+    /*
+     * Observer function to update dropoff location when isDropoffLocationSame property is updated
+    */
     _updateDropoffLocation: function() {
         if (this.isDropoffLocationSame) {
             var previousValue = this._previousDropoffLocation;
-            this.dropoffLocation = this.pickupLocation;
+            this._dropoffLocation = this._pickupLocation;
             this._previousDropoffLocation = previousValue;
         } else if (this._previousDropoffLocation) {
-            this.dropoffLocation = this._previousDropoffLocation;
+            this._dropoffLocation = this._previousDropoffLocation;
         }
     },
 
+    /*
+     * Builds search request
+    */
     _buildSearchRequest: function() {
 
-        if (!this.dropoffLocation) {
-            this.dropoffLocation = this.pickupLocation;
+        if (!this._dropoffLocation) {
+            this._dropoffLocation = this._pickupLocation;
         }
 
         this.request = {
             productType: "car",
             pickupLocation: {
-                name: this.pickupLocation.name,
-                geoCode: this.pickupLocation.geoCode,
-                type: this.pickupLocation.type,
-                code: this.pickupLocation.code,
-                formattedAddress: this.pickupLocation.formattedAddress
+                name: this._pickupLocation.name,
+                geoCode: this._pickupLocation.geoCode,
+                type: this._pickupLocation.type,
+                code: this._pickupLocation.code,
+                formattedAddress: this._pickupLocation.formattedAddress
             },
             pickupDate: {
                 date: this._getFormattedDate(this.pickupDate),
@@ -190,25 +270,34 @@ Polymer({
                 time: this.dropoffTime,
             },
             dropoffLocation: {
-                name: this.dropoffLocation.name,
-                geoCode: this.dropoffLocation.geoCode,
-                type: this.dropoffLocation.type,
-                code: this.dropoffLocation.code,
-                formattedAddress: this.dropoffLocation.formattedAddress
+                name: this._dropoffLocation.name,
+                geoCode: this._dropoffLocation.geoCode,
+                type: this._dropoffLocation.type,
+                code: this._dropoffLocation.code,
+                formattedAddress: this._dropoffLocation.formattedAddress
             }
         };
     },
 
+    /*
+     * Observer function to change dropoff date when pickup date is updated
+    */
     _pickupDateChanged: function() {
         this.$.dropoffDate.min = this.$.pickupDate.selectedDate;
         this.$.dropoffDate._changeMinMax();
     },
 
+    /*
+     * Observer function to change pickup date when dropoff date is updated
+    */
     _dropoffDateChanged: function() {
         this.$.pickupDate.max = this.$.dropoffDate.selectedDate;
         this.$.pickupDate._changeMinMax();
     },
 
+    /*
+     * Search button event handler
+    */
     searchCars: function() {
         if (!this.validate()) {
             return;
@@ -221,6 +310,9 @@ Polymer({
         });
     },
 
+    /*
+     * search call success callback
+    */
     onSearchSuccess: function(e) {
         if (!e.detail) {
             console.error("something blew up!");
@@ -234,17 +326,23 @@ Polymer({
         });
     },
 
+    /*
+     * search call failure callback
+    */
     onSearchError: function(e) {
         console.error("something blew up!");
         console.log(e.detail);
         this.fire('t-car-search-failure', e.detail);
     },
 
+    /*
+     * validation function
+    */
     validate: function() {
         var check = true;
         var requiredFields = this.querySelectorAll('[required]');
         for (var i = 0; i < requiredFields.length; i++) {
-            if (!requiredFields[i].validate()) {
+            if (!requiredFields[i].hidden && !requiredFields[i].validate()) {
                 check = false;
             }
         }
