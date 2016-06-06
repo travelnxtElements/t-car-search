@@ -1,12 +1,58 @@
 <link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../t-input/t-input.html" />
+<link rel="import" href="../t-button/t-button.html" />
+<link rel="import" href="../t-checkbox/t-checkbox.html" />
+<link rel="import" href="../t-autosuggest/t-autosuggest.html" />
+<link rel="import" href="../t-calendar/t-calendar.html" />
+<link rel="import" href="../t-text-container/travel-element-styles.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" />
 <dom-module id="t-car-search">
-    <style>
+    <style include="iron-flex"></style>
+    <style include="travel-element-styles">
     :host {
-        text-align: center;
+        font-family: sans-serif;
+    }
+    
+    t-button {
+        display: block;
+        margin-top: 50px;
+    }
+    
+    div:not(.checkbox) {
+        margin-bottom: 15px;
+    }
+    
+    t-checkbox {
+        margin-top: 10px;
     }
     </style>
     <template>
-        <input on-click="searchCars" type="button" value="Search Cars!" />
+        <div>
+            <t-autosuggest id="pick-up-location" required selected-item="{{pickupLocation}}" label="Pick-up from" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+        </div>
+        <div class="checkbox">
+            <t-checkbox id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
+        </div>
+        <div hidden$="{{isDropoffLocationSame}}">
+            <t-autosuggest id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+        </div>
+        <div>
+            <t-calendar required label="Pick-up date" name="Pick-up date" id="pick-up-date" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            </t-calendar>
+        </div>
+        <div>
+            <t-calendar required label="Drop-off date" name="Drop-off date" id="drop-off-date" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            </t-calendar>
+        </div>
+        <div>
+            <t-input required error-message="You missed this." id="pick-up-time" label="Pick-up time" value="{{pickupTime}}"></t-input>
+        </div>
+        <div>
+            <t-input required error-message="You missed this." id="drop-off-time" label="Drop-off time" value="{{dropoffTime}}"></t-input>
+        </div>
+        <div>
+            <t-button class="primary block margin-bottom" on-click="searchCars" type="button" label="Search Cars" /></t-button>
+        </div>
     </template>
 </dom-module>
 <script>
@@ -14,6 +60,60 @@ Polymer({
     is: "t-car-search",
 
     properties: {
+
+        pickupLocation: {
+            type: String,
+            value: ''
+        },
+
+        dropoffLocation: {
+            type: String,
+            value: '',
+            observer: '_storeLocation'
+        },
+
+        _previousDropoffLocation: {
+            type: String,
+            value: ''
+        },
+
+        pickupDate: {
+            type: Date,
+            value: null
+        },
+
+        dropoffDate: {
+            type: Date,
+            value: null
+        },
+
+        pickupTime: {
+            type: Date,
+            value: null
+        },
+
+        dropoffTime: {
+            type: Date,
+            value: null
+        },
+
+        isDropoffLocationSame: {
+            type: Boolean,
+            value: true,
+            observer: '_updateDropoffLocation'
+        },
+
+        autosuggestApi: {
+            type: String,
+            value: ''
+        },
+
+        autosuggestQueryString: {
+            type: String,
+            value: ''
+        },
+
+        //to be removed        
         request: {
             type: Object,
             value: null
@@ -23,36 +123,87 @@ Polymer({
             type: Object,
             value: null
         }
+        //to be removed
+    },
+
+    _storeLocation: function() {
+        this._previousDropoffLocation = this.dropoffLocation;
+    },
+
+    _getFormattedDate: function(date) {
+        if (!date) {
+            return null;
+        }
+
+        date = new Date(this.pickupDate);
+
+        if (!date) {
+            return null;
+        }
+
+        date = date.toGMTString();
+
+        date = date.split(' ');
+
+        if (!date || date.length !== 6) {
+            return;
+        }
+
+        date = date.slice(0, 4);
+        date[2] += ',';
+
+        return date.join(' ');
+    },
+
+    _updateDropoffLocation: function() {
+        if (this.isDropoffLocationSame) {
+            var previousValue = this._previousDropoffLocation;
+            this.dropoffLocation = this.pickupLocation;
+            this._previousDropoffLocation = previousValue;
+        } else if (this._previousDropoffLocation) {
+            this.dropoffLocation = this._previousDropoffLocation;
+        }
+    },
+
+    _buildSearchRequest: function() {
+
+        if (!this.dropoffLocation) {
+            this.dropoffLocation = this.pickupLocation;
+        }
+
+        this.request = {
+            productType: "car",
+            pickupLocation: {
+                name: this.pickupLocation.name,
+                geoCode: this.pickupLocation.geoCode,
+                type: this.pickupLocation.type,
+                code: this.pickupLocation.code,
+                formattedAddress: this.pickupLocation.formattedAddress
+            },
+            pickupDate: {
+                date: this._getFormattedDate(this.pickupDate),
+                time: this.pickupTime,
+            },
+            dropoffDate: {
+                date: this._getFormattedDate(this.dropoffDate),
+                time: this.dropoffTime,
+            },
+            dropoffLocation: {
+                name: this.dropoffLocation.name,
+                geoCode: this.dropoffLocation.geoCode,
+                type: this.dropoffLocation.type,
+                code: this.dropoffLocation.code,
+                formattedAddress: this.dropoffLocation.formattedAddress
+            }
+        };
     },
 
     searchCars: function() {
+        if (!this.validate()) {
+            return;
+        }
 
-        //sample request
-        this.request = {
-            "productType": "car",
-            "pickupLocation": {
-                "name": "Las Vegas, NV, United States - McCarran International Airport (LAS)",
-                "geoCode": "36.0854,-115.15",
-                "type": "Address",
-                "code": "LAS",
-                "formattedAddress": "Las Vegas, NV, US - Las Vegas North Air Terminal (VGT)"
-            },
-            "pickupDate": {
-                "date": "Fri, 24 June, 2016",
-                "time": "11:00 AM"
-            },
-            "dropoffDate": {
-                "date": "Tue, 28 June, 2016",
-                "time": "11:00 AM"
-            },
-            "dropoffLocation": {
-                "name": "Las Vegas, NV, United States - McCarran International Airport (LAS)",
-                "geoCode": "36.0854,-115.15",
-                "type": "Address",
-                "code": "LAS",
-                "formattedAddress": "Las Vegas, NV, US - Las Vegas North Air Terminal (VGT)"
-            }
-        };
+        this._buildSearchRequest();
 
         this.fire('t-car-search', {
             request: this.request
@@ -60,15 +211,34 @@ Polymer({
     },
 
     onSearchSuccess: function(e) {
+        if (!e.detail) {
+            console.error("something blew up!");
+            return;
+        }
+
         console.log(e.detail);
+        this.response = e.detail;
+
         this.fire('t-car-search-success', {
-            request: e.detail
+            request: this.response
         });
     },
 
     onSearchError: function(e) {
+        console.error("something blew up!");
         console.log(e.detail);
         this.fire('t-car-search-failure', e.detail);
+    },
+
+    validate: function() {
+        var check = true;
+        var requiredFields = this.querySelectorAll('[required]');
+        for (var i = 0; i < requiredFields.length; i++) {
+            if (!requiredFields[i].validate()) {
+                check = false;
+            }
+        }
+        return check;
     }
 });
 </script>
