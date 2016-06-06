@@ -37,11 +37,11 @@
             <t-autosuggest id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="{{autosuggestQueryString}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
         <div>
-            <t-calendar required label="Pick-up date" name="Pick-up date" id="pick-up-date" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            <t-calendar required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
         </div>
         <div>
-            <t-calendar required label="Drop-off date" name="Drop-off date" id="drop-off-date" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            <t-calendar required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
         </div>
         <div>
@@ -79,12 +79,14 @@ Polymer({
 
         pickupDate: {
             type: Date,
-            value: null
+            value: null,
+            observer: '_pickupDateChanged'
         },
 
         dropoffDate: {
             type: Date,
-            value: null
+            value: null,
+            observer: '_dropoffDateChanged'
         },
 
         pickupTime: {
@@ -113,17 +115,15 @@ Polymer({
             value: ''
         },
 
-        //to be removed        
         request: {
             type: Object,
             value: null
         },
 
-        response: {
-            type: Object,
-            value: null
+        searchId: {
+            type: String,
+            value: ''
         }
-        //to be removed
     },
 
     _storeLocation: function() {
@@ -135,21 +135,22 @@ Polymer({
             return null;
         }
 
-        date = new Date(this.pickupDate);
+        date = new Date(date);
 
         if (!date) {
             return null;
         }
 
-        date = date.toGMTString();
+        date = date.toString();
 
         date = date.split(' ');
 
-        if (!date || date.length !== 6) {
+        if (!date || date.length < 4) {
             return;
         }
 
         date = date.slice(0, 4);
+        date[0] += ',';
         date[2] += ',';
 
         return date.join(' ');
@@ -198,6 +199,16 @@ Polymer({
         };
     },
 
+    _pickupDateChanged: function() {
+        this.$.dropoffDate.min = this.$.pickupDate.selectedDate;
+        this.$.dropoffDate._changeMinMax();
+    },
+
+    _dropoffDateChanged: function() {
+        this.$.pickupDate.max = this.$.dropoffDate.selectedDate;
+        this.$.pickupDate._changeMinMax();
+    },
+
     searchCars: function() {
         if (!this.validate()) {
             return;
@@ -216,8 +227,7 @@ Polymer({
             return;
         }
 
-        console.log(e.detail);
-        this.response = e.detail;
+        this.searchId = e.detail.searchId;
 
         this.fire('t-car-search-success', {
             request: this.response
