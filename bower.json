@@ -31,7 +31,8 @@
     "t-text-container": "travelnxtelements/t-text-container#^1.1.0",
     "t-checkbox": "atomelements/t-checkbox#^1.1.2",
     "t-autosuggest": "atomelements/t-autosuggest#^1.2.0",
-    "t-calendar": "atomelements/t-calendar#^1.2.0"
+    "t-calendar": "atomelements/t-calendar#^1.2.0",
+    "t-sessionstorage": "travelnxtElements/t-sessionstorage#^1.0.0"
   },
   "devDependencies": {
     "web-component-tester": "*",
