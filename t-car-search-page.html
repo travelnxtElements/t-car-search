@@ -1,0 +1,234 @@
+<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="./t-car-search.html">
+<link rel="import" href="./t-car-search-api.html">
+<link rel="import" href="../t-mystique-auth/t-mystique-auth.html">
+<link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
+
+<!--
+    <h3>Details:</h3>
+
+        `t-car-search-page` is a car search page component integrated with mystique apis.
+
+        It uses following child components in it -
+            1. `t-car-search`
+            2. `t-car-search-api`
+            3. `t-sessionstorage`
+
+    <h3>Object Structure:</h3>
+
+        The component resets iteself if search request in following format is provided 
+        in `resetView` method -
+
+            var request = {
+                productType: "car",
+                pickupLocation: {
+                    name: this.pickupLocation.name,
+                    geoCode: this.pickupLocation.geoCode,
+                    type: this.pickupLocation.type,
+                    code: this.pickupLocation.code,
+                    formattedAddress: this.pickupLocation.formattedAddress
+                },
+                pickupDate: {
+                    date: this._getFormattedDate(this.pickupDate),
+                    time: this.pickupTime,
+                },
+                dropoffDate: {
+                    date: this._getFormattedDate(this.dropoffDate),
+                    time: this.dropoffTime,
+                },
+                dropoffLocation: {
+                    name: this.dropoffLocation.name,
+                    geoCode: this.dropoffLocation.geoCode,
+                    type: this.dropoffLocation.type,
+                    code: this.dropoffLocation.code,
+                    formattedAddress: this.dropoffLocation.formattedAddress
+                }
+            };
+
+        `pickupLocation` & `dropoffLocation` properties have following object structure -
+
+            var location = {
+                name: this.pickupLocation.name,
+                geoCode: this.pickupLocation.geoCode,
+                type: this.pickupLocation.type,
+                code: this.pickupLocation.code,
+                formattedAddress: this.pickupLocation.formattedAddress
+            }
+
+    <h3>Events:</h3>
+
+        following events are fired by this component
+
+            1. 't-car-search' - sends car search request object upon successful validation
+
+    <h3>Example:</h3>
+
+        <t-car-search 
+            id="searchView"
+            autosuggest-api="{{apiBaseUrl}}api/content/autosuggest/"
+            auth-token="{{authToken}}"
+            on-t-car-search="onSearch">
+        </t-car-search>
+
+    @demo demo/index.html
+-->
+
+
+<dom-module id="t-car-search-page">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        
+        <t-car-search 
+            id="searchView"
+            autosuggest-api="{{apiBaseUrl}}api/content/autosuggest/"
+            auth-token="{{authToken}}"
+            on-t-car-search="onSearch">
+        </t-car-search>
+
+        <t-car-search-api 
+            id="searchApi" 
+            loading={{loading}} 
+            api-base-url="{{apiBaseUrl}}" 
+            api-relative-url="api/Car/search" 
+            auth-token="{{authToken}}"
+            on-t-car-search-api-success="onSeachSuccess"
+            on-t-car-search-api-failure="onSeachFailure">
+        </t-car-search-api>
+
+        <t-sessionstorage
+            id="sessionStore"
+            api-url-format="{{apiUrlFormat}}"
+            on-t-sessionstorage-save-success="onSessionSave"
+            on-t-sessionstorage-load-success="onSessionLoad">
+        </t-sessionstorage>
+
+    </template>
+    <script>
+    (function () {
+        Polymer({
+            is: 't-car-search-page',
+
+            properties: {
+
+                /*
+                 * This url is used as base api url for t-autosuggest
+                */
+                autosuggestApi: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * This string is query string containing token value
+                */
+                authToken: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * This string is query string containing token value
+                */
+                apiBaseUrl: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * This string is query string containing token value
+                */
+                apiUrlFormat: {
+                    type: String,
+                    value: ''
+                },
+
+                /*
+                 * This string is query string containing token value
+                */
+                _sessionKeys: {
+                    type: Object,
+                    value: function () {                        
+                        return {
+                            searchCriteria : 'CAR_SEARCH_CRITERIA',
+                            searchId:'CAR_SEARCH_ID'
+                        };
+                    },
+                    readonly: true
+                },
+            },
+
+            attached: function () {
+                this._getFromSessionStore(this._sessionKeys.searchCriteria);
+            },
+
+            _saveInSessionStore: function (key, value) {
+
+                if (!key || !value) {
+                    return;
+                }
+
+                this.$.sessionStore.key = key;
+                this.$.sessionStore.value = value;
+
+                this.$.sessionStore.save();
+            },
+
+            _getFromSessionStore: function (key) {
+
+                if (!key) {
+                    return;
+                }
+
+                this.$.sessionStore.key = key;
+
+                return this.$.sessionStore.load();
+            },
+
+            onSearch: function (e) {
+                this._saveInSessionStore(this._sessionKeys.searchCriteria, e.detail);
+                this.$.searchApi.search(e.detail);
+            },
+
+            onSeachSuccess: function (e) {
+                if (!e.detail) {
+                    console.error("something blew up!");
+                    return;
+                }
+
+                this._saveInSessionStore(this._sessionKeys.searchId, e.detail.searchId);
+            },
+
+            onSeachFailure: function (e) {
+                console.error(e.detail);
+                this.fire('t-car-search-failure', e.detail);
+            },
+
+            onSessionSave: function () {
+                if (this.$.sessionStore.key === this._sessionKeys.searchId) {
+                    this.fire('t-car-search-success', {
+                        request: this.response
+                    });
+                }
+            },
+
+            onSessionLoad: function () {
+                if (this.$.sessionStore.key === this._sessionKeys.searchCriteria) {
+                    this.resetView();
+                }
+            },
+
+            resetView: function () {
+                if (!this.$.sessionStore.value) {
+                    return;
+                }
+
+                this.$.searchView.resetView(this.$.sessionStore.value);
+            }
+        });        
+    })();
+    </script>
+</dom-module>
