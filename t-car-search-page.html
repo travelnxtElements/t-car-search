@@ -3,6 +3,7 @@
 <link rel="import" href="./t-car-search-api.html">
 <link rel="import" href="../t-mystique-auth/t-mystique-auth.html">
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
+<link rel="import" href="../t-notify/t-notify.html">
 
 <!--
     <h3>Details:</h3>
@@ -81,6 +82,8 @@
                 display: block;
             }
         </style>
+
+        <t-notify id="notify" message="" type="error"></t-notify>
         
         <t-car-search 
             id="searchView"
@@ -96,7 +99,7 @@
             api-relative-url="api/Car/search" 
             auth-token="{{authToken}}"
             on-t-car-search-api-success="onSeachSuccess"
-            on-t-car-search-api-failure="onSeachFailure">
+            on-t-car-search-api-error="onSeachError">
         </t-car-search-api>
 
         <t-sessionstorage
@@ -195,6 +198,8 @@
 
             onSeachSuccess: function (e) {
                 if (!e.detail) {
+                    this.$.notify.active = true;
+                    this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                     console.error("something blew up!");
                     return;
                 }
@@ -202,9 +207,11 @@
                 this._saveInSessionStore(this._sessionKeys.searchId, e.detail.searchId);
             },
 
-            onSeachFailure: function (e) {
+            onSeachError: function (e) {
+                this.$.notify.active = true;
+                this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                 console.error(e.detail);
-                this.fire('t-car-search-failure', e.detail);
+                this.fire('t-car-search-error', e.detail);
             },
 
             onSessionSave: function () {

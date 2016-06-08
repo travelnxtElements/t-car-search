@@ -37,13 +37,11 @@ Polymer({
 
     search: function(data) {
 
-        if (!this.request) {
-            if (!data) {
-                throw Error("search request is mandetory");
-            } else {
-                this.request = data;
-            }
+        if (!data) {
+            throw Error("search request is mandetory");
         }
+        
+        this.request = data;
 
         if (this._validateApiMeta()) {
             this.$.ajaxCall.url = this._getUrl();

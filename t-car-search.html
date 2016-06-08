@@ -106,8 +106,8 @@
         <div class="checkbox">
             <t-checkbox id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
         </div>
-        <div hidden$="{{isDropoffLocationSame}}">
-            <t-autosuggest id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+        <div>
+            <t-autosuggest  disabled="{{isDropoffLocationSame}}"" id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
         <div>
             <t-calendar required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
@@ -149,7 +149,8 @@ Polymer({
         */
         pickupLocation: {
             type: Object,
-            value: ''
+            value: '',
+            observer: '_pickupLocationChanged'
         },
 
         /*
@@ -232,6 +233,17 @@ Polymer({
     */
     _storeLocation: function() {
         this._previousDropoffLocation = this.dropoffLocation;
+    },
+
+    /*
+     * <p>updates dropoffLocation if `isDropoffLocationSame` property is set to true</p>
+    */
+    _pickupLocationChanged:function () {
+
+        if (this.isDropoffLocationSame) {
+            this.dropoffLocation = this.pickupLocation;
+        }
+        
     },
 
     /*
