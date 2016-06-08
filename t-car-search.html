@@ -24,30 +24,30 @@
 
         The component resets iteself if search request in following format is provided 
         in `resetView` method -
-
+            
             var request = {
-                productType: "car",
-                pickupLocation: {
-                    name: this.pickupLocation.name,
-                    geoCode: this.pickupLocation.geoCode,
-                    type: this.pickupLocation.type,
-                    code: this.pickupLocation.code,
-                    formattedAddress: this.pickupLocation.formattedAddress
+                "productType": "car",
+                "pickupLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
                 },
-                pickupDate: {
-                    date: this._getFormattedDate(this.pickupDate),
-                    time: this.pickupTime,
+                "pickupDate": {
+                    "date": "06/23/2016",
+                    "time": "11 AM"
                 },
-                dropoffDate: {
-                    date: this._getFormattedDate(this.dropoffDate),
-                    time: this.dropoffTime,
+                "dropoffDate": {
+                    "date": "06/25/2016",
+                    "time": "12 AM"
                 },
-                dropoffLocation: {
-                    name: this.dropoffLocation.name,
-                    geoCode: this.dropoffLocation.geoCode,
-                    type: this.dropoffLocation.type,
-                    code: this.dropoffLocation.code,
-                    formattedAddress: this.dropoffLocation.formattedAddress
+                "dropoffLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
                 }
             };
 

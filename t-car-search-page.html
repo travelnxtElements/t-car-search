@@ -14,39 +14,40 @@
             1. `t-car-search`
             2. `t-car-search-api`
             3. `t-sessionstorage`
+            4. `t-notify`
 
     <h3>Object Structure:</h3>
 
-        The component resets iteself if search request in following format is provided 
-        in `resetView` method -
+        1. The component resets iteself if search request in following format is provided 
+           in `resetView` method -
 
             var request = {
-                productType: "car",
-                pickupLocation: {
-                    name: this.pickupLocation.name,
-                    geoCode: this.pickupLocation.geoCode,
-                    type: this.pickupLocation.type,
-                    code: this.pickupLocation.code,
-                    formattedAddress: this.pickupLocation.formattedAddress
+                "productType": "car",
+                "pickupLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
                 },
-                pickupDate: {
-                    date: this._getFormattedDate(this.pickupDate),
-                    time: this.pickupTime,
+                "pickupDate": {
+                    "date": "06/23/2016",
+                    "time": "11 AM"
                 },
-                dropoffDate: {
-                    date: this._getFormattedDate(this.dropoffDate),
-                    time: this.dropoffTime,
+                "dropoffDate": {
+                    "date": "06/25/2016",
+                    "time": "12 AM"
                 },
-                dropoffLocation: {
-                    name: this.dropoffLocation.name,
-                    geoCode: this.dropoffLocation.geoCode,
-                    type: this.dropoffLocation.type,
-                    code: this.dropoffLocation.code,
-                    formattedAddress: this.dropoffLocation.formattedAddress
+                "dropoffLocation": {
+                    "name": "McCarran International Airport",
+                    "geoCode": "36.0854,-115.15",
+                    "type": "Airport",
+                    "code": "LAS",
+                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
                 }
             };
 
-        `pickupLocation` & `dropoffLocation` properties have following object structure -
+        2.  `pickupLocation` & `dropoffLocation` properties have following object structure -
 
             var location = {
                 name: this.pickupLocation.name,
@@ -60,16 +61,17 @@
 
         following events are fired by this component
 
-            1. 't-car-search' - sends car search request object upon successful validation
+            1. 't-car-search-success' - fired upon successful search call
+            2. 't-car-search-error' - fired if search call is failed
 
     <h3>Example:</h3>
 
-        <t-car-search 
-            id="searchView"
-            autosuggest-api="{{apiBaseUrl}}api/content/autosuggest/"
-            auth-token="{{authToken}}"
-            on-t-car-search="onSearch">
-        </t-car-search>
+        <t-car-search-page
+            id="searchPage"
+            api-base-url="http://qa-mystiquecode.tavisca.com/"
+            auth-token="{{tokenResponse.authenticationToken}}"
+            api-url-format="/api/Session/SESSIONKEY">
+        </t-car-search-page>
 
     @demo demo/index.html
 -->
@@ -98,8 +100,8 @@
             api-base-url="{{apiBaseUrl}}" 
             api-relative-url="api/Car/search" 
             auth-token="{{authToken}}"
-            on-t-car-search-api-success="onSeachSuccess"
-            on-t-car-search-api-error="onSeachError">
+            on-t-car-search-api-success="onSearchSuccess"
+            on-t-car-search-api-error="onSearchError">
         </t-car-search-api>
 
         <t-sessionstorage
@@ -118,7 +120,7 @@
             properties: {
 
                 /*
-                 * This url is used as base api url for t-autosuggest
+                 * <p>This url is used as base api url for `t-autosuggest`</p>
                 */
                 autosuggestApi: {
                     type: String,
@@ -126,7 +128,7 @@
                 },
 
                 /*
-                 * This string is query string containing token value
+                 * <p>This string is query string containing token value</p>
                 */
                 authToken: {
                     type: String,
@@ -134,7 +136,7 @@
                 },
 
                 /*
-                 * This string is query string containing token value
+                 * <p>This property holds the value of api base URL</p>
                 */
                 apiBaseUrl: {
                     type: String,
@@ -142,7 +144,7 @@
                 },
 
                 /*
-                 * This string is query string containing token value
+                 * <p>This property holds the value of web api URL format</p>
                 */
                 apiUrlFormat: {
                     type: String,
@@ -150,7 +152,7 @@
                 },
 
                 /*
-                 * This string is query string containing token value
+                 * <p>This property is collection of keys used to store data in session</p>
                 */
                 _sessionKeys: {
                     type: Object,
@@ -160,14 +162,19 @@
                             searchId:'CAR_SEARCH_ID'
                         };
                     },
-                    readonly: true
+                    readOnly: true
                 },
             },
+
 
             attached: function () {
                 this._getFromSessionStore(this._sessionKeys.searchCriteria);
             },
 
+            /*
+             * <p>This page component level method to save data in session</p>
+             * <p>This should be moved in page component behaviour</p>
+            */
             _saveInSessionStore: function (key, value) {
 
                 if (!key || !value) {
@@ -180,6 +187,10 @@
                 this.$.sessionStore.save();
             },
 
+            /*
+             * <p>This is page component level method to get data from session</p>
+             * <p>This should be moved in page component behaviour</p>
+            */
             _getFromSessionStore: function (key) {
 
                 if (!key) {
@@ -191,12 +202,18 @@
                 return this.$.sessionStore.load();
             },
 
+            /*
+             * <p>Event handler method called when `t-car-search` event is fired</p>
+            */
             onSearch: function (e) {
                 this._saveInSessionStore(this._sessionKeys.searchCriteria, e.detail);
                 this.$.searchApi.search(e.detail);
             },
 
-            onSeachSuccess: function (e) {
+            /*
+             * <p>Event handler method called when `t-car-search-api-success` event is fired</p>
+            */
+            onSearchSuccess: function (e) {
                 if (!e.detail) {
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
@@ -207,14 +224,20 @@
                 this._saveInSessionStore(this._sessionKeys.searchId, e.detail.searchId);
             },
 
-            onSeachError: function (e) {
+            /*
+             * <p>Event handler method called when `t-car-search-api-error` event is fired</p>
+            */
+            onSearchError: function (e) {
                 this.$.notify.active = true;
                 this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
                 console.error(e.detail);
                 this.fire('t-car-search-error', e.detail);
             },
 
-            onSessionSave: function () {
+            /*
+             * <p>Event handler method called when `t-sessionstorage-save-success` event is fired</p>
+            */
+            onSessionSave: function (e) {
                 if (this.$.sessionStore.key === this._sessionKeys.searchId) {
                     this.fire('t-car-search-success', {
                         request: this.response
@@ -222,12 +245,19 @@
                 }
             },
 
-            onSessionLoad: function () {
+            /*
+             * <p>Event handler method called when `t-sessionstorage-load-success` event is fired</p>
+            */
+            onSessionLoad: function (e) {
                 if (this.$.sessionStore.key === this._sessionKeys.searchCriteria) {
                     this.resetView();
                 }
             },
 
+            /*
+             * <p>This method resets the view by using saved data in session</p>
+             * <p>It calles child views' resetView method to propogate the reset event</p>
+            */
             resetView: function () {
                 if (!this.$.sessionStore.value) {
                     return;
