@@ -33,7 +33,8 @@
     "t-autosuggest": "atomelements/t-autosuggest#^1.2.0",
     "t-calendar": "atomelements/t-calendar#^1.2.0",
     "t-sessionstorage": "travelnxtElements/t-sessionstorage#^1.0.0",
-    "t-notify": "atomelements/t-notify#^1.1.1"
+    "t-notify": "atomelements/t-notify#^1.1.1",
+    "t-dropdown": "atomelements/t-dropdown#^2.0.1"
   },
   "devDependencies": {
     "web-component-tester": "*",

@@ -4,9 +4,9 @@
 <link rel="import" href="../t-checkbox/t-checkbox.html" />
 <link rel="import" href="../t-autosuggest/t-autosuggest.html" />
 <link rel="import" href="../t-calendar/t-calendar.html" />
+<link rel="import" href="../t-dropdown/t-dropdown.html" />
 <link rel="import" href="../t-text-container/travel-element-styles.html">
-<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html" >
-
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <!--
     <h3>Details:</h3>
 
@@ -78,61 +78,57 @@
 
     @demo demo/index.html
 -->
-
 <dom-module id="t-car-search">
     <style include="iron-flex"></style>
     <style include="travel-element-styles">
     :host {
-        font-family: sans-serif;
-    }
-    
-    t-button {
+        font-family: var(--primary-font-family);
         display: block;
-        margin-top: 50px;
     }
     
-    div:not(.checkbox) {
-        margin-bottom: 15px;
+    #pickupDate,
+    #dropoffDate{
+        margin-right: 10px;
     }
-    
-    t-checkbox {
-        margin-top: 10px;
+    .row {
+        margin: 20px 0;
+        display: block;
     }
     </style>
     <template>
-        <div>
+        <div class="row">
             <t-autosuggest id="pick-up-location" required selected-item="{{pickupLocation}}" label="Pick-up from" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
-        <div class="checkbox">
-            <t-checkbox id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
+            <t-checkbox class="row checkbox" id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
+        <div class="row">
+            <t-autosuggest hidden$="{{isDropoffLocationSame}}" id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
-        <div>
-            <t-autosuggest  disabled="{{isDropoffLocationSame}}"" id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
-        </div>
-        <div>
-            <t-calendar required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+        <div class="row layout horizontal">
+            <t-calendar class="flex" required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
+
+            <t-dropdown  required error-message="You missed this." class="flex" id="pick-up-time" label="Pick-up time" selected-item="{{pickupTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
-        <div>
-            <t-calendar required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+        <div class="row  layout horizontal">
+            <t-calendar  class="flex" required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
+
+            <t-dropdown required  class="flex" error-message="You missed this." id="drop-off-time" label="Drop-off time" selected-item="{{dropoffTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
-        <div>
-            <t-input required error-message="You missed this." id="pick-up-time" label="Pick-up time" value="{{pickupTime}}"></t-input>
-        </div>
-        <div>
-            <t-input required error-message="You missed this." id="drop-off-time" label="Drop-off time" value="{{dropoffTime}}"></t-input>
-        </div>
-        <div>
-            <t-button class="primary block margin-bottom" on-click="searchCars" type="button" label="Search Cars" /></t-button>
-        </div>
+            <t-button class="primary row" on-click="searchCars" type="button" label="Search Cars" /></t-button>
     </template>
 </dom-module>
 <script>
 Polymer({
-    is: "t-car-search",
+    is: 't-car-search',
 
     properties: {
+
+
+        arrayTime: {
+            type: Array,
+            value:['12:00 AM','12:30 AM','01:00 AM','01:30 AM','02:00 AM','02:30 AM','03:00 AM','03:30 AM','04:00 AM','04:30 AM','05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM']
+        },
 
         /*
          * <p>This is the copy of dropoff location proeprty</p>
@@ -294,7 +290,7 @@ Polymer({
     _buildSearchRequest: function() {
 
         return {
-            productType: "car",
+            productType: "car ",
             pickupLocation: {
                 name: this.pickupLocation.name,
                 geoCode: this.pickupLocation.geoCode,
@@ -368,14 +364,15 @@ Polymer({
         if (!sessionData) {
             return;
         }
-
-        this.pickupLocation = sessionData.pickupLocation;
-        this.dropoffLocation = sessionData.dropoffLocation;
-        this.isDropoffLocationSame = sessionData.pickupLocation.name === sessionData.dropoffLocation.name;
-        this.pickupDate = this._getFormattedDate(sessionData.pickupDate.date);
-        this.dropoffDate = this._getFormattedDate(sessionData.dropoffDate.date);
-        this.pickupTime = sessionData.pickupDate.time;
-        this.dropoffTime = sessionData.dropoffDate.time;
+        setTimeout(function(){
+            this.pickupLocation = sessionData.pickupLocation;
+            this.dropoffLocation = sessionData.dropoffLocation;
+            this.isDropoffLocationSame = sessionData.pickupLocation.name === sessionData.dropoffLocation.name;
+            this.pickupDate = this._getFormattedDate(sessionData.pickupDate.date);
+            this.dropoffDate = this._getFormattedDate(sessionData.dropoffDate.date);
+            this.pickupTime = sessionData.pickupDate.time;
+            this.dropoffTime = sessionData.dropoffDate.time;
+        }.bind(this),300)
     },
 
     /*
