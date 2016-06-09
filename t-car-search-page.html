@@ -1,6 +1,6 @@
 <link rel="import" href="../polymer/polymer.html" />
-<link rel="import" href="./t-car-search.html">
-<link rel="import" href="./t-car-search-api.html">
+<link rel="import" href="t-car-search.html">
+<link rel="import" href="t-car-search-api.html">
 <link rel="import" href="../t-mystique-auth/t-mystique-auth.html">
 <link rel="import" href="../t-sessionstorage/t-sessionstorage.html">
 <link rel="import" href="../t-notify/t-notify.html">
@@ -112,6 +112,7 @@
         </t-sessionstorage>
 
     </template>
+</dom-module>
     <script>
     (function () {
         Polymer({
@@ -217,7 +218,7 @@
                 if (!e.detail) {
                     this.$.notify.active = true;
                     this.$.notify.message = event.detail.code + ' - ' + event.detail.message;
-                    console.error("something blew up!");
+                    console.error('something blew up!');
                     return;
                 }
 
@@ -268,4 +269,3 @@
         });        
     })();
     </script>
-</dom-module>
