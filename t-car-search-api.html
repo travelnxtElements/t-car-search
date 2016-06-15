@@ -68,24 +68,12 @@
 <script>
 (function() {
 
-        Polymer({
+    Polymer({
         is: 't-car-search-api',
-
-        properties: {
-
-            /*
-             * <p>This is the payload used while searching cars using mystique api</p>
-             * <p>Follow documentation for structure.</p>
-            */
-            request: {
-                type: Object,
-                value: null
-            }
-        },
 
         /*
          * <p>Behaviour to validate ajax parameters and handle error codes.</p>
-        */
+         */
         behaviors: [TravelNxt.Behaviors.ProviderBehavior],
 
         listeners: {
@@ -94,40 +82,67 @@
         },
 
         /*
-         * <p>Event handler method to search cars</p>
-        */
-        onSearch: function(e) {
-
-            if (!e.detail.request) {
-                throw Error("search request is mandetory");
-            }
-
-            this.request = e.detail.request;
-            this.search();
-        },
-
-        /*
          * <p>Method to search cars</p>
-        */
+         */
         search: function(data) {
 
             if (!data) {
                 throw Error("search request is mandetory");
             }
-
-            this.request = data;
+            var component = this;
+            function _buildData(data) {
+                return {
+                    productType: "car ",
+                    pickupLocation: {
+                        name: data.pickupLocation.name,
+                        geoCode: data.pickupLocation.geoCode,
+                        type: data.pickupLocation.type,
+                        code: data.pickupLocation.code,
+                        formattedAddress: data.pickupLocation.formattedAddress
+                    },
+                    pickupDate: {
+                        date: component._getFormattedDate(data.pickupDate),
+                        time: data.pickupTime,
+                    },
+                    dropoffDate: {
+                        date: component._getFormattedDate(data.dropoffDate),
+                        time: data.dropoffTime,
+                    },
+                    dropoffLocation: {
+                        name: data.dropoffLocation.name,
+                        geoCode: data.dropoffLocation.geoCode,
+                        type: data.dropoffLocation.type,
+                        code: data.dropoffLocation.code,
+                        formattedAddress: data.dropoffLocation.formattedAddress
+                    }
+                };
+            };
 
             if (this._validateApiMeta()) {
                 this.$.ajaxCall.url = this._getUrl();
-                this.$.ajaxCall.body = JSON.stringify(this.request);
-                this._setLoading(true);
+                this.$.ajaxCall.body = JSON.stringify(_buildData(data));
                 this.$.ajaxCall.generateRequest();
             }
         },
+     /*
+         * <p>Translates dates to make them compatible with t-calendar</p>
+        */
+        _getFormattedDate: function (dateString) {
+            dateString = new Date(dateString);
 
+            var date = dateString.getDate();
+            date = date <= 9 ? '0' + date : date;
+
+            var month = dateString.getMonth() + 1;
+            month = month <= 9 ? '0' + month : month;
+
+            var year = dateString.getFullYear();
+
+            return month +'/'+ date +'/'+ year;
+        },
         /*
          * <p>Success callback</p>
-        */
+         */
         _successCallback: function(event) {
             this._successHandler(event);
         },
@@ -135,7 +150,7 @@
 
         /*
          * <p>error callback</p>
-        */
+         */
         _errorCallback: function(event) {
             this._errorHandler(event);
         }

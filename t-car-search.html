@@ -20,47 +20,6 @@
         components expects an autocomplete api url and a valid mystique api token 
         in order to integrate with t-autosuggest.
 
-    <h3>Object Structure:</h3>
-
-        The component resets iteself if search request in following format is provided 
-        in `resetView` method -
-            
-            var request = {
-                "productType": "car",
-                "pickupLocation": {
-                    "name": "McCarran International Airport",
-                    "geoCode": "36.0854,-115.15",
-                    "type": "Airport",
-                    "code": "LAS",
-                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
-                },
-                "pickupDate": {
-                    "date": "06/23/2016",
-                    "time": "11 AM"
-                },
-                "dropoffDate": {
-                    "date": "06/25/2016",
-                    "time": "12 AM"
-                },
-                "dropoffLocation": {
-                    "name": "McCarran International Airport",
-                    "geoCode": "36.0854,-115.15",
-                    "type": "Airport",
-                    "code": "LAS",
-                    "formattedAddress": "Las Vegas, NV, United States - McCarran International Airport (LAS)"
-                }
-            };
-
-        `pickupLocation` & `dropoffLocation` properties have following object structure -
-
-            var location = {
-                name: this.pickupLocation.name,
-                geoCode: this.pickupLocation.geoCode,
-                type: this.pickupLocation.type,
-                code: this.pickupLocation.code,
-                formattedAddress: this.pickupLocation.formattedAddress
-            }
-
     <h3>Events:</h3>
 
         following events are fired by this component
@@ -84,14 +43,19 @@
     :host {
         font-family: var(--primary-font-family);
         display: block;
+        padding: var(--form-spacing,10px);
     }
     
     #pickupDate,
     #dropoffDate{
-        margin-right: 10px;
+        margin-right: var(--form-spacing,10px);
     }
     .row {
         margin: 20px 0;
+        display: block;
+    }
+    .row:first-child{
+        margin: 0 0 20px 0;
         display: block;
     }
     </style>
@@ -115,7 +79,7 @@
 
             <t-dropdown required  class="flex" error-message="You missed this." id="drop-off-time" label="Drop-off time" selected-item="{{dropoffTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
-            <t-button class="primary row" on-click="searchCars" type="button" label="Search Cars" /></t-button>
+            <t-button id="search" class="primary row" on-click="searchCars" type="button" label="Search Cars" /></t-button>
     </template>
 </dom-module>
 <script>
@@ -243,35 +207,6 @@ Polymer({
     },
 
     /*
-     * <p>Returns formatted date required in the search request</p>
-    */
-    _getFormattedDate: function(date) {
-        if (!date) {
-            return null;
-        }
-
-        date = new Date(date);
-
-        if (!date) {
-            return null;
-        }
-
-        date = date.toString();
-
-        date = date.split(' ');
-
-        if (!date || date.length < 4) {
-            return;
-        }
-
-        date = date.slice(0, 4);
-        date[0] += ',';
-        date[2] += ',';
-
-        return date.join(' ');
-    },
-
-    /*
      * <p>Observer function to update dropoff location when `isDropoffLocationSame` property is updated</p>
     */
     _updateDropoffLocation: function() {
@@ -290,29 +225,15 @@ Polymer({
     _buildSearchRequest: function() {
 
         return {
-            productType: "car ",
-            pickupLocation: {
-                name: this.pickupLocation.name,
-                geoCode: this.pickupLocation.geoCode,
-                type: this.pickupLocation.type,
-                code: this.pickupLocation.code,
-                formattedAddress: this.pickupLocation.formattedAddress
-            },
-            pickupDate: {
-                date: this._getFormattedDate(this.pickupDate),
-                time: this.pickupTime,
-            },
-            dropoffDate: {
-                date: this._getFormattedDate(this.dropoffDate),
-                time: this.dropoffTime,
-            },
-            dropoffLocation: {
-                name: this.dropoffLocation.name,
-                geoCode: this.dropoffLocation.geoCode,
-                type: this.dropoffLocation.type,
-                code: this.dropoffLocation.code,
-                formattedAddress: this.dropoffLocation.formattedAddress
-            }
+            pickupLocation: this.pickupLocation,
+            pickupDate: this.pickupDate,
+            dropoffLocation: this.dropoffLocation,
+            dropoffDate: this.dropoffDate,
+            isDropoffLocationSame: this.isDropoffLocationSame,
+
+            pickupTime : this.pickupTime,
+            dropoffTime : this.dropoffTime
+            
         };
     },
 
@@ -353,43 +274,6 @@ Polymer({
         var request = this._buildSearchRequest();
 
         this.fire('t-car-search', request);
-    },
-
-    /*
-     * <p>Resets the view if valid search request format is provided</p>
-     * <p>Refer request format in documentation</p>
-    */
-    resetView: function (sessionData) {
-
-        if (!sessionData) {
-            return;
-        }
-        setTimeout(function(){
-            this.pickupLocation = sessionData.pickupLocation;
-            this.dropoffLocation = sessionData.dropoffLocation;
-            this.isDropoffLocationSame = sessionData.pickupLocation.name === sessionData.dropoffLocation.name;
-            this.pickupDate = this._getFormattedDate(sessionData.pickupDate.date);
-            this.dropoffDate = this._getFormattedDate(sessionData.dropoffDate.date);
-            this.pickupTime = sessionData.pickupDate.time;
-            this.dropoffTime = sessionData.dropoffDate.time;
-        }.bind(this),300)
-    },
-
-    /*
-     * <p>Translates dates to make them compatible with t-calendar</p>
-    */
-    _getFormattedDate: function (dateString) {
-        dateString = new Date(dateString);
-
-        var date = dateString.getDate();
-        date = date <= 9 ? '0' + date : date;
-
-        var month = dateString.getMonth() + 1;
-        month = month <= 9 ? '0' + month : month;
-
-        var year = dateString.getFullYear();
-
-        return month +'/'+ date +'/'+ year;
     },
 
     /*
