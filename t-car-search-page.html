@@ -112,22 +112,22 @@
             on-t-sessionstorage-load-success="onSessionLoad">
         </t-sessionstorage>
 
-    </template>
-</dom-module>
+    </template>    
     <script>
-    (function () {
-        Polymer({
-            is: 't-car-search-page',
-            
-            
-            properties: {
-              productName: {
-                type:String,
-                value:'Car'
-              }   
-            },
+        (function () {
+            Polymer({
+                is: 't-car-search-page',
+                
+                
+                properties: {
+                  productName: {
+                    type:String,
+                    value:'Car'
+                  }   
+                },
 
-            behaviors:[Polymer.SearchPageBehaviour]
-        });        
-    })();
+                behaviors:[Polymer.SearchPageBehaviour]
+            });        
+        })();
     </script>
+</dom-module>
