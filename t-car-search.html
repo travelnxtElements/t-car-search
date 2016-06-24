@@ -75,13 +75,13 @@
             <t-calendar class="flex" required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
 
-            <t-dropdown  required error-message="You missed this." class="flex" id="pick-up-time" label="Pick-up time" selected-item="{{pickupTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
+            <t-dropdown  required error-message="You missed this." class="flex" id="pickupTime" label="Pick-up time" selected-item="{{pickupTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
         <div class="row  layout horizontal">
             <t-calendar  class="flex" required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
 
-            <t-dropdown required  class="flex" error-message="You missed this." id="drop-off-time" label="Drop-off time" selected-item="{{dropoffTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
+            <t-dropdown required  class="flex" error-message="You missed this." id="dropoffTime" label="Drop-off time" selected-item="{{dropoffTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
             <t-button id="search" class="primary row" on-click="searchCars" type="button" label="Search Cars" /></t-button>
     </template>
@@ -95,7 +95,8 @@ Polymer({
 
         arrayTime: {
             type: Array,
-            value:['12:00 AM','12:30 AM','01:00 AM','01:30 AM','02:00 AM','02:30 AM','03:00 AM','03:30 AM','04:00 AM','04:30 AM','05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM']
+            value:['12:00 AM','12:30 AM','01:00 AM','01:30 AM','02:00 AM','02:30 AM','03:00 AM','03:30 AM','04:00 AM','04:30 AM','05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM'],
+            readOnly: true
         },
 
         /*
@@ -103,8 +104,7 @@ Polymer({
          * <p>Not to be used from outside.</p>
         */
         _previousDropoffLocation: {
-            type: String,
-            value: ''
+            type: String
         },
 
         /*
@@ -113,7 +113,6 @@ Polymer({
         */
         pickupLocation: {
             type: Object,
-            value: '',
             observer: '_pickupLocationChanged'
         },
 
@@ -124,7 +123,6 @@ Polymer({
         */
         dropoffLocation: {
             type: Object,
-            value: '',
             observer: '_storeLocation'
         },
 
@@ -134,7 +132,6 @@ Polymer({
         */
         pickupDate: {
             type: String,
-            value: null,
             observer: '_pickupDateChanged'
         },
 
@@ -143,9 +140,7 @@ Polymer({
          * <p>Observer function resets the min max values for pickup dates to meet validation constraints.</p>
         */
         dropoffDate: {
-            type: String,
-            value: null,
-            observer: '_dropoffDateChanged'
+            type: String
         },
 
         /*
@@ -153,7 +148,7 @@ Polymer({
         */
         pickupTime: {
             type: String,
-            value: null
+            observer: '_pickupTimeChanged'
         },
 
         /*
@@ -161,7 +156,7 @@ Polymer({
         */
         dropoffTime: {
             type: String,
-            value: null
+            observer: '_dropoffTimeChanged'
         },
 
         /*
@@ -249,17 +244,36 @@ Polymer({
         setTimeout(function(){
             this.$.dropoffDate.min = this.$.pickupDate.selectedDate;
             this.$.dropoffDate._changeMinMax(); 
+            if(this.dropoffDate && new Date(this.dropoffDate) < new Date(this.pickupDate)){
+                this.$.dropoffDate._clear();
+            }
         }.bind(this), 10);
     },
 
     /*
-     * <p>Observer function to change pickup date when dropoff date is updated</p>
+     * <p>Observer function to change dropoff time when pickup time is updated</p>
     */
-    _dropoffDateChanged: function() {
-        setTimeout(function(){
-            this.$.pickupDate.max = this.$.dropoffDate.selectedDate;
-            this.$.pickupDate._changeMinMax();
-        }.bind(this), 10);
+    _pickupTimeChanged: function () {
+        if (new Date(this.dropoffDate) - new Date(this.pickupDate) > 0 || !this.pickupTime) {
+            return;
+        }
+
+        if (this.arrayTime.indexOf(this.pickupTime) >= this.arrayTime.indexOf(this.dropoffTime) ) {
+            this.$.dropoffTime.clear();
+        }
+    },
+
+    /*
+     * <p>Observer function to change pickup time when dropoff time is updated</p>
+    */
+    _dropoffTimeChanged: function () {
+        if (new Date(this.dropoffDate) - new Date(this.pickupDate) > 0 || !this.dropoffTime) {
+            return;
+        }
+
+        if (this.arrayTime.indexOf(this.pickupTime) >= this.arrayTime.indexOf(this.dropoffTime) ) {
+            this.$.pickupTime.clear();
+        }   
     },
 
     /*
