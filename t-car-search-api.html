@@ -90,40 +90,41 @@
                 throw Error("search request is mandetory");
             }
             var component = this;
-            function _buildData(data) {
-                return {
-                    productType: "car ",
-                    pickupLocation: {
-                        name: data.pickupLocation.name,
-                        geoCode: data.pickupLocation.geoCode,
-                        type: data.pickupLocation.type,
-                        code: data.pickupLocation.code,
-                        formattedAddress: data.pickupLocation.formattedAddress
-                    },
-                    pickupDate: {
-                        date: component._getFormattedDate(data.pickupDate),
-                        time: data.pickupTime,
-                    },
-                    dropoffDate: {
-                        date: component._getFormattedDate(data.dropoffDate),
-                        time: data.dropoffTime,
-                    },
-                    dropoffLocation: {
-                        name: data.dropoffLocation.name,
-                        geoCode: data.dropoffLocation.geoCode,
-                        type: data.dropoffLocation.type,
-                        code: data.dropoffLocation.code,
-                        formattedAddress: data.dropoffLocation.formattedAddress
-                    }
-                };
-            };
 
             if (this._validateApiMeta()) {
                 this.$.ajaxCall.url = this._getUrl();
-                this.$.ajaxCall.body = JSON.stringify(_buildData(data));
+                this.$.ajaxCall.body = JSON.stringify(this._buildData(data));
                 this.$.ajaxCall.generateRequest();
             }
         },
+
+        _buildData: function(data) {
+            return {
+                productType: "car ",
+                pickupLocation: {
+                    name: data.pickupLocation.name,
+                    geoCode: data.pickupLocation.geoCode,
+                    type: data.pickupLocation.type,
+                    code: data.pickupLocation.code,
+                    formattedAddress: data.pickupLocation.formattedAddress
+                },
+                pickupDate: {
+                    date: component._getFormattedDate(data.pickupDate),
+                    time: data.pickupTime,
+                },
+                dropoffDate: {
+                    date: component._getFormattedDate(data.dropoffDate),
+                    time: data.dropoffTime,
+                },
+                dropoffLocation: {
+                    name: data.dropoffLocation.name,
+                    geoCode: data.dropoffLocation.geoCode,
+                    type: data.dropoffLocation.type,
+                    code: data.dropoffLocation.code,
+                    formattedAddress: data.dropoffLocation.formattedAddress
+                }
+            };
+        };
      /*
          * <p>Translates dates to make them compatible with t-calendar</p>
         */
