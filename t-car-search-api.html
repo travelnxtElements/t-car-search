@@ -89,7 +89,6 @@
             if (!data) {
                 throw Error("search request is mandetory");
             }
-            var component = this;
 
             if (this._validateApiMeta()) {
                 this.$.ajaxCall.url = this._getUrl();
@@ -100,7 +99,7 @@
 
         _buildData: function(data) {
             return {
-                productType: "car ",
+                productType: "car",
                 pickupLocation: {
                     name: data.pickupLocation.name,
                     geoCode: data.pickupLocation.geoCode,
@@ -109,11 +108,11 @@
                     formattedAddress: data.pickupLocation.formattedAddress
                 },
                 pickupDate: {
-                    date: component._getFormattedDate(data.pickupDate),
+                    date: this._getFormattedDate(data.pickupDate),
                     time: data.pickupTime,
                 },
                 dropoffDate: {
-                    date: component._getFormattedDate(data.dropoffDate),
+                    date: this._getFormattedDate(data.dropoffDate),
                     time: data.dropoffTime,
                 },
                 dropoffLocation: {
@@ -124,7 +123,7 @@
                     formattedAddress: data.dropoffLocation.formattedAddress
                 }
             };
-        };
+        },
      /*
          * <p>Translates dates to make them compatible with t-calendar</p>
         */
