@@ -148,7 +148,8 @@ Polymer({
         */
         pickupTime: {
             type: String,
-            observer: '_pickupTimeChanged'
+            observer: '_pickupTimeChanged',
+            value: '11:00 AM'
         },
 
         /*
@@ -156,7 +157,8 @@ Polymer({
         */
         dropoffTime: {
             type: String,
-            observer: '_dropoffTimeChanged'
+            observer: '_dropoffTimeChanged',
+            value: '11:00 AM'
         },
 
         /*
@@ -254,6 +256,11 @@ Polymer({
      * <p>Observer function to change dropoff time when pickup time is updated</p>
     */
     _pickupTimeChanged: function () {
+
+        if (!this.dropoffDate && !this.pickupDate) {
+            return;
+        }
+
         if (new Date(this.dropoffDate) - new Date(this.pickupDate) > 0 || !this.pickupTime) {
             return;
         }
@@ -267,6 +274,11 @@ Polymer({
      * <p>Observer function to change pickup time when dropoff time is updated</p>
     */
     _dropoffTimeChanged: function () {
+
+        if (!this.dropoffDate && !this.pickupDate) {
+            return;
+        }
+        
         if (new Date(this.dropoffDate) - new Date(this.pickupDate) > 0 || !this.dropoffTime) {
             return;
         }
