@@ -105,7 +105,12 @@
                     geoCode: data.pickupLocation.geoCode,
                     type: data.pickupLocation.type,
                     code: data.pickupLocation.code,
-                    formattedAddress: data.pickupLocation.formattedAddress
+                    formattedAddress: data.pickupLocation.formattedAddress,
+                    cityName: data.pickupLocation.cityName,
+                    countryCode: data.pickupLocation.countryCode,
+                    countryName: data.pickupLocation.countryName,
+                    stateCode: data.pickupLocation.stateCode,
+                    stateName: data.pickupLocation.stateName
                 },
                 pickupDate: {
                     date: this._getFormattedDate(data.pickupDate),
@@ -120,7 +125,12 @@
                     geoCode: data.dropoffLocation.geoCode,
                     type: data.dropoffLocation.type,
                     code: data.dropoffLocation.code,
-                    formattedAddress: data.dropoffLocation.formattedAddress
+                    formattedAddress: data.dropoffLocation.formattedAddress,
+                    cityName: data.dropoffLocation.cityName,
+                    countryCode: data.dropoffLocation.countryCode,
+                    countryName: data.dropoffLocation.countryName,
+                    stateCode: data.dropoffLocation.stateCode,
+                    stateName: data.dropoffLocation.stateName
                 }
             };
         },
