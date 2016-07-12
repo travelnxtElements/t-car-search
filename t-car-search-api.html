@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer.html" />
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../t-shared-lib/t-provider-behavior.html">
+<link rel="import" href="../t-shared-lib/t-date-behavior.html">
 <!--
     <h3>Details:</h3>
 
@@ -74,7 +75,10 @@
         /*
          * <p>Behaviour to validate ajax parameters and handle error codes.</p>
          */
-        behaviors: [TravelNxt.Behaviors.ProviderBehavior],
+        behaviors: [
+            TravelNxt.Behaviors.ProviderBehavior,
+            TravelNxt.Behaviors.DateBehavior
+        ],
 
         listeners: {
             'ajaxCall.response': '_successCallback',
@@ -138,17 +142,14 @@
          * <p>Translates dates to make them compatible with t-calendar</p>
         */
         _getFormattedDate: function (dateString) {
-            dateString = new Date(dateString);
 
-            var date = dateString.getDate();
-            date = date <= 9 ? '0' + date : date;
-
-            var month = dateString.getMonth() + 1;
-            month = month <= 9 ? '0' + month : month;
-
-            var year = dateString.getFullYear();
-
-            return month +'/'+ date +'/'+ year;
+            //changed the date format to match the format added templar site
+            //need to find a solution to get the format from templar to create date objects.
+            var dateComponents = this._getDateComponents(dateString);
+            return  dateComponents.day + ', ' + 
+                    dateComponents.monthIndex + '/' + 
+                    dateComponents.date + '/' +
+                    dateComponents.year
         },
         /*
          * <p>Success callback</p>
