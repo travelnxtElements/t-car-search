@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../t-shared-lib/t-date-behavior.html">
 <!--
     `<t-car-search-api-decorator>` is a polymer component that generates the  msytique request for car.
     Basic usage
@@ -13,7 +14,11 @@
 <script>
     Polymer({
         is: 't-car-search-api-decorator',
-
+        
+        behaviors: [
+            TravelNxt.Behaviors.DateBehavior
+        ],
+        
         observers:[
             '_buildData(input)'
         ],
@@ -86,5 +91,4 @@
                     dateComponents.year
         }
     });
-})();
 </script>
