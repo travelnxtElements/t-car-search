@@ -5,8 +5,8 @@
 <link rel="import" href="../t-autosuggest/t-autosuggest.html" />
 <link rel="import" href="../t-calendar/t-calendar.html" />
 <link rel="import" href="../t-dropdown/t-dropdown.html" />
-<link rel="import" href="../t-text-container/travel-element-styles.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../t-text-container/t-search-form-styles.html" />
 <!--
     <h3>Details:</h3>
 
@@ -39,46 +39,23 @@
 -->
 <dom-module id="t-car-search">
     <style include="iron-flex"></style>
-    <style include="travel-element-styles">
-    :host {
-        font-family: var(--primary-font-family);
-        display: block;
-        padding: var(--form-spacing,10px);
-    }
-    
-    #pickupDate,
-    #dropoffDate{
-        margin-right: var(--form-spacing,10px);
-    }
-    .row {
-        margin: 20px 0;
-        display: block;
-    }
-    .row:first-child{
-        margin: 0 0 20px 0;
-        display: block;
-    }
-    #search {
-        margin-top: 10px;
-    }
-    
-    </style>
+    <style include="t-search-form-styles"></style>
     <template>
         <div class="row">
             <t-autosuggest id="pick-up-location" required selected-item="{{pickupLocation}}" label="Pick-up from" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
             <t-checkbox class="row checkbox" id="acceptance" checked="{{isDropoffLocationSame}}">Drop-off at same location </t-checkbox>
         <div class="row">
-            <t-autosuggest hidden$="{{isDropoffLocationSame}}" id="drop-off-location" required selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
+            <t-autosuggest hidden$="[[isDropoffLocationSame]]" id="drop-off-location" required$="[[!isDropoffLocationSame]]" selected-item="{{dropoffLocation}}" label="Drop-off to" data-url="{{autosuggestApi}}" query-params="token={{authToken}}" token-param="formattedAddress" error-message="You missed this."></t-autosuggest>
         </div>
         <div class="row layout horizontal">
-            <t-calendar class="flex" required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            <t-calendar class="flex horizontal-margin-right" required label="Pick-up date" name="Pick-up date" id="pickupDate" selected-date="{{pickupDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
 
             <t-dropdown  required error-message="You missed this." class="flex" id="pickupTime" label="Pick-up time" selected-item="{{pickupTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
         </div>
         <div class="row  layout horizontal">
-            <t-calendar  class="flex" required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
+            <t-calendar  class="flex horizontal-margin-right" required label="Drop-off date" name="Drop-off date" id="dropoffDate" selected-date="{{dropoffDate}}" error-msg="You missed this." format="mm/dd/yyyy">
             </t-calendar>
 
             <t-dropdown required  class="flex" error-message="You missed this." id="dropoffTime" label="Drop-off time" selected-item="{{dropoffTime}}" dropdown-array="[[arrayTime]]" ></t-dropdown>
@@ -303,25 +280,7 @@ Polymer({
 
         var request = this._buildSearchRequest();
 
-        this.fire('t-car-search', request);
-    },
-
-    /*
-     * <p>validation function</p>
-    */
-    validate: function() {
-        var check = true;
-        var requiredFields = this.querySelectorAll('[required]');
-        for (var i = 0; i < requiredFields.length; i++) {
-            if (requiredFields[i].hidden) {
-                continue;
-            }
-
-            if (!requiredFields[i].validate()) {
-                check = false;
-            }
-        }
-        return check;
+        this.fire('t-car-search-validate', request);
     }
 });
 </script>
