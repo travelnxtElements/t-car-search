@@ -123,7 +123,8 @@ Polymer({
          * <p>Observer function resets the min max values for pickup dates to meet validation constraints.</p>
         */
         dropoffDate: {
-            type: String
+            type: String,
+            observer: '_dropoffDateChanged'
         },
 
         /*
@@ -232,7 +233,14 @@ Polymer({
             if(this.dropoffDate && new Date(this.dropoffDate) < new Date(this.pickupDate)){
                 this.$.dropoffDate._clear();
             }
+            //check if date and time differences are correct
+            this._dropoffTimeChanged();
         }.bind(this), 10);
+    },
+
+    _dropoffDateChanged: function () {
+        //check if date and time differences are correct
+        this._pickupTimeChanged();
     },
 
     /*
@@ -240,7 +248,7 @@ Polymer({
     */
     _pickupTimeChanged: function () {
 
-        if (!this.dropoffDate && !this.pickupDate) {
+        if (!this.dropoffDate || !this.pickupDate) {
             return;
         }
 
@@ -258,7 +266,7 @@ Polymer({
     */
     _dropoffTimeChanged: function () {
 
-        if (!this.dropoffDate && !this.pickupDate) {
+        if (!this.dropoffDate || !this.pickupDate) {
             return;
         }
         
